@@ -1,28 +1,13 @@
 apiVersion: 1.0.0
 metadata:
-  generateName: python-
-
+  name: python-workspace-
 projects:
-  - name: python-workshop
-    source:
+  - source:
       type: git
-      location: "https://github.com/tsailiming/datascience-examples.git"
+      location: https://github.com/tsailiming/datascience-examples.git
+    name: github
 
 components:
   - type: chePlugin
+    alias: python-ls
     id: ms-python/python/latest
-    memoryLimit: 512Mi
-  
-  - type: dockerimage
-    alias: python
-    image: "quay.io/eclipse/che-python-3.6:nightly"
-    memoryLimit: 512Mi
-    mountSources: true
-
-commands:
-  - name: train
-    actions:
-      - type: exec
-        component: pythonchePlugin
-        command: python train.py
-        workdir: "${CHE_PROJECTS_ROOT}/datascience-examples"
