@@ -5,13 +5,14 @@ metadata:
 projects:
   - name: python-workshop
     source:
-    type: git
-    location: "https://github.com/tsailiming/datascience-examples.git"
+      type: git
+      location: "https://github.com/tsailiming/datascience-examples.git"
 
 components:
   - type: chePlugin
     id: ms-python/python/latest
     memoryLimit: 512Mi
+  
   - type: dockerimage
     alias: python
     image: "quay.io/eclipse/che-python-3.6:nightly"
