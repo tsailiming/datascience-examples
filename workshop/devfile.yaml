@@ -54,7 +54,13 @@ commands:
         type: exec
         command: 'pip install flask'
         component: python
-
+  
+  - name: Test 4
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/datascience-examples/workshop/src'
+        type: exec
+        command: 'sleep 10'
+        component: python
 
 
     
