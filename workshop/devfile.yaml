@@ -1,13 +1,52 @@
 apiVersion: 1.0.0
 metadata:
-  name: python-workspace-
+  generateName: python-
+
 projects:
   - source:
       type: git
       location: https://github.com/tsailiming/datascience-examples.git
-    name: github
+    name: datascience-examples
 
 components:
-  - type: chePlugin
-    alias: python-ls
-    id: ms-python/python/latest
+  - id: ms-python/python/latest
+    memoryLimit: 512Mi
+    type: chePlugin
+  - mountSources: true
+    memoryLimit: 512Mi
+    type: dockerimage
+    alias: python
+    image: registry.redhat.io/codeready-workspaces/stacks-python-rhel8@sha256:2058a74f04a03b125e40006496c1a363ea34dd354cfceaa0f5a3faae934e4ecb
+commands:
+  - name: pip install requirementrs.txt
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/datascience-examples/workshop/src'
+        type: exec
+        command: pip install -r requirements.txt
+        component: python
+
+  - name: Convert notebooks to py
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/datascience-examples/workshop'
+        type: exec
+        command: bin/nb2py.sh
+        component: python
+
+  - name: Debug current file
+    actions:
+      - referenceContent: |
+          {
+            "version": "0.2.0",
+            "configurations": [
+              {
+                "name": "Python: Current File",
+                "type": "python",
+                "request": "launch",
+                "program": "${file}",
+                "console": "internalConsole"
+              }
+            ]
+          }
+        type: vscode-launch
+
+    
