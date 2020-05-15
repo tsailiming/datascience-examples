@@ -12,14 +12,15 @@ components:
   - id: ms-python/python/latest
     memoryLimit: 1Gi
     type: chePlugin
+    
   - mountSources: true
-    memoryLimit: 512Mi
+    memoryLimit: 1Gi
     type: dockerimage
     alias: python
     image: registry.redhat.io/codeready-workspaces/stacks-python-rhel8@sha256:2058a74f04a03b125e40006496c1a363ea34dd354cfceaa0f5a3faae934e4ecb
 
 commands:
-  - name: 1 - pip install requirementrs.txt
+  - name: 1 - pip install requirements.txt
     actions:
       - workdir: '${CHE_PROJECTS_ROOT}/datascience-examples/workshop/src'
         type: exec
