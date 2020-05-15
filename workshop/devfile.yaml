@@ -12,7 +12,7 @@ components:
   - id: ms-python/python/latest
     memoryLimit: 1Gi
     type: chePlugin
-    
+
   - mountSources: true
     memoryLimit: 1Gi
     type: dockerimage
@@ -33,5 +33,28 @@ commands:
         type: exec
         command: bin/nb2py.sh
         component: python
+
+  - name: Test 1
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/datascience-examples/workshop/src'
+        type: exec
+        command: python helloworld.py
+        component: python
+
+  - name: Test 2
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/datascience-examples/workshop/src'
+        type: exec
+        command: 'echo hello'
+        component: python
+
+  - name: Test 3
+    actions:
+      - workdir: '${CHE_PROJECTS_ROOT}/datascience-examples/workshop/src'
+        type: exec
+        command: 'pip install flask'
+        component: python
+
+
 
     
