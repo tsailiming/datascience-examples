@@ -1,0 +1,19 @@
+#!/bin/bash
+echo "Before assembling"
+
+/usr/libexec/s2i/assemble
+
+#echo 'Running save-model.py'
+#$HOME/save-model.py
+echo 'Copy model'
+#cp /workspace/model/model.pkl $HOME/model
+
+rc=$?
+
+if [ $rc -eq 0 ]; then
+    echo "After successful assembling"
+else
+    echo "After failed assembling"
+fi
+
+exit $rc
