@@ -6,7 +6,9 @@ echo "Before assembling"
 #echo 'Running save-model.py'
 #$HOME/save-model.py
 echo 'Copy model'
-#cp /workspace/model/model.pkl $HOME/model
+ls -al /workspace/model/
+cp /workspace/model/model.pkl $HOME/model
+
 
 rc=$?
 
