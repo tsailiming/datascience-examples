@@ -3,6 +3,12 @@ echo "Before assembling"
 
 /usr/libexec/s2i/assemble
 
+# https://github.com/SeldonIO/seldon-core/issues/1756
+# Not fixed in 1.1.0
+echo 'Patch seldon-core metrics.py'
+SITE_PKG_PATH=`python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])'`
+(cd $SITE_PKG_PATH/seldon_core && patch < $HOME/metrics.py.patch)
+
 #echo 'Running save-model.py'
 #$HOME/save-model.py
 #echo 'Copy model'
