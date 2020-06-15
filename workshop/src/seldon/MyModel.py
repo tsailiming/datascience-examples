@@ -17,7 +17,7 @@ class MyModel(object):
         logger.info('Starting {} Microservice'.format(__name__))
 
         model_path = os.environ['HOME'] + '/model'
-        self.model = joblob.load(model_path)
+        self.model = joblib.load(model_path)
         self.model_metadata = {}
         
         self.cm = {'tp': 0.0, 'fp': 0.0, 'tn': 0.0, 'fn': 0.0}
