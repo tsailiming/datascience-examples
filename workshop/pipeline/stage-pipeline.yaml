@@ -1,0 +1,240 @@
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   name: mlflow-obc
+# data:
+#   AWS1: cGFzc3dvcmQ=
+#   AWS2: cGFzc3dvcmQ=
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: mlflow-obc
+# data:
+#   BUCKET: bucket
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: clean-workspace
+spec:  
+  workspaces:
+    - name: workspace
+      mountPath: /workspace
+  steps:
+  - name: clean
+    image: registry.redhat.io/ubi8/ubi-minimal
+    script: |
+      #!/bin/bash
+      rm -rf /workspace/*
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: openshift-client
+spec:
+  workspaces:
+    - name: workspace
+      mountPath: /workspace
+  inputs:
+    params:
+      - name: YAML_FILE
+        type: string
+      - description: Image url
+        name: IMAGE_URL
+        type: string
+        default: image-registry.openshift-image-registry.svc:5000/user1-stage/pipeline-s2i-test
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        #!/bin/bash
+        
+        GIT_REV=`cat /workspace/git`
+
+        echo "YAML FILE: $(inputs.params.YAML_FILE)"
+        echo "IMAGE URL: $(inputs.params.IMAGE_URL):$GIT_REV"
+        
+        sed -e "s|@IMAGE_URL@|$(inputs.params.IMAGE_URL)|g" -e "s|@IMAGE_TAG@|$GIT_REV|g" "$(inputs.params.YAML_FILE)" | oc apply -f -
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: train
+spec:
+  resources:
+    inputs:
+    - name: source
+      type: git
+  workspaces:
+    - name: workspace
+      mountPath: /workspace
+  steps:
+  - name: setup-workspace
+    image: registry.redhat.io/openshift-pipelines-tech-preview/pipelines-git-init-rhel8@sha256:bb744988e87cc556873098885ee1a7fc1ef7b6c1ea24e3a4d7a5e518edb22838
+    script: |
+      #!/bin/bash
+      mkdir -p /workspace/model
+
+      GIT_REV=`(cd /workspace/source && git rev-parse --short HEAD)`
+      echo $GIT_REV > /workspace/git
+
+      echo "GIT REVISION: $GIT_REV"
+  - script: |
+      #!/bin/bash
+      pip install -U pip
+      pip install -r /workspace/source/workshop/src/requirements.txt
+      python /workspace/source/workshop/src/train/app.py /workspace/model/model.pkl
+    image: registry.redhat.io/ubi8/python-36
+    name: train
+    resources: {}
+    envFrom:
+    - secretRef:
+        name: mlflow-obc
+    - configMapRef:
+        name: mlflow-obc
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: s2i-python-3
+spec:
+  workspaces:
+    - name: workspace
+      mountPath: /workspace      
+  params:
+  - default: "6"
+    description: The minor version of the python 3
+    name: MINOR_VERSION
+    type: string
+  - default: .
+    description: The location of the path to run s2i from.
+    name: PATH_CONTEXT
+    type: string
+  - default: "true"
+    description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS
+      registry)
+    name: TLSVERIFY
+    type: string
+  - description: Image url
+    name: IMAGE_URL
+    type: string
+    default: image-registry.openshift-image-registry.svc:5000/user1-stage/pipeline-s2i-test
+  steps:
+  - name: testing-access
+    image: registry.redhat.io/ubi8/ubi-minimal
+    script: |
+      #!/bin/bash
+      ls -al /workspace/model/*
+  - script: |
+      #!/bin/bash
+      s2i build $(params.PATH_CONTEXT) \
+      registry.access.redhat.com/ubi8/python-3$(params.MINOR_VERSION) \
+      --as-dockerfile /gen-source/Dockerfile.gen
+
+      cp -v /workspace/model/model.pkl /gen-source/upload/src/        
+    image: registry.redhat.io/ocp-tools-43-tech-preview/source-to-image-rhel8
+    name: generate
+    resources: {}
+    volumeMounts:
+    - mountPath: /gen-source
+      name: gen-source
+  - script: | 
+      #/bin/bash
+      
+      GIT_REV=`cat /workspace/git`
+      buildah bud --tls-verify=$(params.TLSVERIFY) \
+      --layers -f /gen-source/Dockerfile.gen \
+      -t $(params.IMAGE_URL):$GIT_REV .
+
+    image: registry.redhat.io/rhel8/buildah
+    name: build
+    resources: {}
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - mountPath: /var/lib/containers
+      name: varlibcontainers
+    - mountPath: /gen-source
+      name: gen-source
+    workingDir: /gen-source
+  - script: | 
+      #!/bin/bash
+
+      GIT_REV=`cat /workspace/git`
+      
+      buildah push \
+      --tls-verify=$(params.TLSVERIFY) \
+      $(params.IMAGE_URL):$GIT_REV \
+      docker://$(params.IMAGE_URL):$GIT_REV
+    image: registry.redhat.io/rhel8/buildah
+    name: push
+    resources: {}
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - mountPath: /var/lib/containers
+      name: varlibcontainers
+  volumes:
+  - emptyDir: {}
+    name: varlibcontainers
+  - emptyDir: {}
+    name: gen-source
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: pipeline
+spec:
+  resources:
+  - name: source
+    type: git
+  workspaces:
+  - name: workspace
+  tasks:
+  - name: deploy
+    params:
+    - name: YAML_FILE
+      value: /workspace/source/workshop/pipeline/seldon-simple-model.yaml 
+    workspaces:
+      - name: workspace
+        workspace: workspace
+    runAfter:
+      - build-model-image
+    taskRef:
+      kind: Task
+      name: openshift-client
+  - name: build-model-image
+    workspaces:
+      - name: workspace
+        workspace: workspace
+    params:
+    - name: TLSVERIFY
+      value: "false"
+    - name: PATH_CONTEXT
+      value: /workspace/source/workshop/src/seldon
+    runAfter:
+    - train
+    taskRef:
+      kind: Task
+      name: s2i-python-3
+  - name: train
+    resources:
+      inputs:
+      - name: source
+        resource: source
+    workspaces:
+      - name: workspace
+        workspace: workspace
+    taskRef:
+      kind: Task
+      name: train
+    runAfter:
+      - clean-workspace
+  - name: clean-workspace
+    workspaces:
+      - name: workspace
+        workspace: workspace
+    taskRef:
+      kind: Task
+      name: clean-workspace

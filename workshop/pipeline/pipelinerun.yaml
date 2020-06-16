@@ -1,0 +1,45 @@
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pipeline-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-cephfs
+  volumeMode: Filesystem
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  generateName: pipeline-
+spec:
+  pipelineRef:
+    name: pipeline
+  workspaces:
+    - name: workspace 
+      persistentVolumeClaim:
+        claimName: pipeline-pvc
+  resources:
+    - name: source
+      resourceSpec:
+        type: git
+        params:
+          - name: revision
+            value: master #$(params.gitrevision)
+          - name: url
+            value: https://github.com/tsailiming/datascience-examples #$(params.gitrepositoryurl)
+
+      # resourceSpec:
+      #     type: git
+      #     params:
+      #     - name: revision
+      #       value: $(params.gitrevision)
+      #     - name: url
+      #       value: $(params.gitrepositoryurl)
+    # - name: image
+    #   resourceRef:
+    #     name: image
