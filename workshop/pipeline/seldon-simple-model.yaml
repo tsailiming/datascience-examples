@@ -1,7 +1,7 @@
 apiVersion: machinelearning.seldon.io/v1
 kind: SeldonDeployment
 metadata:
-  name: seldon-model
+  name: seldon
 spec:
   annotations:
     seldon.io/engine-separate-pod: "true"
@@ -9,15 +9,42 @@ spec:
   - componentSpecs:
     - spec:
         containers:
-        - image: image-registry.openshift-image-registry.svc:5000/user1/pipeline-s2i-test:latest
+        - image: image-registry.openshift-image-registry.svc:5000/user1-stage/pipeline-s2i-test:latest
           imagePullPolicy: Always
-          name: seldon-model
+          name: classifier
+          livenessProbe:            
+            httpGet:
+              path: /health/status
+              port: http
+              scheme: HTTP
+          readinessProbe:
+            httpGet:
+              path: /health/status
+              port: http
+              scheme: HTTP
     graph:
       children: []
       endpoint:
         type: REST
-      name:  seldon-model
+      name: classifier
       type: MODEL
     name: pred1
     annotations:
       predictor_version: v1
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: seldon
+spec:
+  host: seldon-user1.apps.ocp.ltsai.com
+  to:
+    kind: Service
+    name: seldon-pred1-classifier
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
