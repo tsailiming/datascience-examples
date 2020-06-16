@@ -36,7 +36,7 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: seldon-123
+  name: seldon
   annotations:
     openshift.io/host.generated: 'true'
 spec:
