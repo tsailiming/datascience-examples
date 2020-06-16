@@ -9,7 +9,8 @@ spec:
   - componentSpecs:
     - spec:
         containers:
-        - image: image-registry.openshift-image-registry.svc:5000/user1-stage/pipeline-s2i-test:latest
+        - image: @IMAGE_URL@:@IMAGE_TAG@
+          #image-registry.openshift-image-registry.svc:5000/user1-stage/pipeline-s2i-test:latest
           imagePullPolicy: Always
           name: classifier
           livenessProbe:            
@@ -35,12 +36,13 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: seldon
+  name: seldon-123
+  annotations:
+    openshift.io/host.generated: 'true'
 spec:
-  host: seldon-user1.apps.ocp.ltsai.com
   to:
     kind: Service
-    name: seldon-pred1-classifier
+    name: seldon-pred1
     weight: 100
   port:
     targetPort: http
