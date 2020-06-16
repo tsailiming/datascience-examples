@@ -38,7 +38,7 @@ class MyModel(object):
 
         logger.info('Predict function called')
         self.requests += 1
-        return self.mode.predict(X)
+        return self.model.predict(X)
 
     def metadata(self):
         logger.info("metadata method")
