@@ -11,9 +11,6 @@ SITE_PKG_PATH=`python -c 'import sysconfig; print(sysconfig.get_paths()["purelib
 
 #echo 'Running save-model.py'
 #$HOME/save-model.py
-#echo 'Copy model'
-#ls -al /workspace/model/
-#cp /workspace/model/model.pkl $HOME/model
 
 rc=$?
 
