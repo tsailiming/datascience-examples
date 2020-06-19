@@ -1,8 +1,9 @@
-jupytext==1.4.2
-matplotlib==3.2.1
+#jupytext==1.4.2
+#matplotlib==3.2.1
 numpy==1.18.2
 pandas==1.0.3
 scikit-learn==0.22.2.post1
-seaborn==0.10.1
+#seaborn==0.10.1
 boto3==1.13.10
 joblib==0.15.1
+mlflow[extras]==1.8.0
