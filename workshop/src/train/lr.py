@@ -66,7 +66,7 @@ class Run:
         return experiment_id
 
     def _prepare_dataset(self):
-        df = pd.read_csv('../../../creditcard.csv')
+        df = pd.read_csv('/workspace/source/creditcard.csv')
 
         features = df.columns.values
 
