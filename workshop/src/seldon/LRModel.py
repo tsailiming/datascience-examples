@@ -19,7 +19,7 @@ class LRModel(Base):
         super().__init__('LogisticRegression')
 
         #model_path = '/tmp/model'
-        os.environ['HOME'] + '/model'
+        model_path = os.environ['HOME'] + '/model'
         self.model = mlflow.sklearn.load_model(model_path)
         
     def predict(self, X, features_names):
