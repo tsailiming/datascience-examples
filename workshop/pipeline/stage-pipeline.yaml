@@ -82,17 +82,29 @@ spec:
       echo "GIT REVISION: $GIT_REV"
   - script: |
       #!/bin/bash
-      pip install -U pip
-      pip install -r /workspace/source/workshop/src/requirements.txt
-      python /workspace/source/workshop/src/train/app.py /workspace/model/model.pkl
+
+      git config --global user.name "FIRST_NAME LAST_NAME"
+      git config --global user.email "MY_NAME@example.com"
+
+      /workspace/source/workshop/src/train/train.sh #/workspace/model/model.pkl
+
     image: registry.redhat.io/ubi8/python-36
     name: train
     resources: {}
+    env:
+    - name: MLFLOW_EXPERIMENT_NAME
+      value: Stage
+    - name: PIPELINERUN
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.labels['tekton.dev/pipelineRun']
     envFrom:
     - secretRef:
         name: mlflow-obc
     - configMapRef:
         name: mlflow-obc
+    - configMapRef:
+        name: mlflow-cm
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -132,7 +144,7 @@ spec:
       registry.access.redhat.com/ubi8/python-3$(params.MINOR_VERSION) \
       --as-dockerfile /gen-source/Dockerfile.gen
 
-      cp -v /workspace/model/model.pkl /gen-source/upload/src/        
+      cp -av /workspace/model /gen-source/upload/src/        
     image: registry.redhat.io/ocp-tools-43-tech-preview/source-to-image-rhel8
     name: generate
     resources: {}
