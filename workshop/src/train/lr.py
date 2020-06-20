@@ -17,9 +17,10 @@ from sklearn.metrics import classification_report, recall_score, precision_score
 
 import pandas as pd
 import numpy as np
+import dvc.api
+import s3fs
 
-DATA_VERSION = ''
-
+DATA_VERSION = 'v1.0'
 
 class Run:
     def __init__(self, run_name, model_path):
@@ -66,8 +67,14 @@ class Run:
         return experiment_id
 
     def _prepare_dataset(self):
-        df = pd.read_csv('/workspace/source/creditcard.csv')
+        resource_url = dvc.api.get_url(
+            path='creditcard.csv',
+            repo='https://gogs-labs-infra.apps.cluster-c6e7.c6e7.sandbox1342.opentlc.com/user1/creditcard',
+            rev=DATA_VERSION)
 
+        fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': os.environ['S3_ENDPOINT_URL']})
+        df = pd.read_csv(fs.open(resource_url))
+        
         features = df.columns.values
 
         # # Finding features with the highest correlation
