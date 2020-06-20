@@ -55,6 +55,9 @@ class Run:
     def test_size(self, test_size):
         self._test_size = test_size
 
+    def _get_pipeline_run(self):
+        return os.environ.get('PIPELINERUN', None)
+
     def _get_experiement_id(self):
         experiment_name = os.environ.get('MLFLOW_EXPERIMENT_NAME', 'Dev')
 
@@ -100,6 +103,7 @@ class Run:
 
         with mlflow.start_run(experiment_id=self.experiment_id, run_name=self.run_name):
 
+            mlflow.set_tag('PIPELINE_RUN', self._get_pipeline_run())
             mlflow.log_param('threshold', self.threshold)
             mlflow.log_param('random_seed', self.random_seed)
             mlflow.log_param('test_size', self.test_size)
