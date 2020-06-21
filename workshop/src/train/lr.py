@@ -70,9 +70,10 @@ class Run:
         return experiment_id
 
     def _prepare_dataset(self):
+
         resource_url = dvc.api.get_url(
             path='creditcard.csv',
-            repo='https://gogs-labs-infra.apps.cluster-c6e7.c6e7.sandbox1342.opentlc.com/user1/creditcard',
+            repo=os.environ['DATA_REPO'],
             rev=DATA_VERSION)
 
         fs = s3fs.S3FileSystem(client_kwargs={'endpoint_url': os.environ['S3_ENDPOINT_URL']})
