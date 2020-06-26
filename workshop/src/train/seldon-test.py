@@ -24,7 +24,7 @@ def send_request(payload):
     return requests.post('http://localhost:5000/predict', json = payload).json()
 
 nofraud_df = load_data('creditcard-nofraud.csv')
-fraud_df = load_data('./creditcard-fraud.csv')
+fraud_df = load_data('creditcard-fraud.csv')
 
 print ("Sending Class='0'")
 pprint(send_request({'data': {'ndarray': nofraud_df.sample(10).values.tolist()}})['data']['ndarray'])
