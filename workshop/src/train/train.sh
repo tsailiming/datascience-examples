@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source code is checked ut at /workspace/source
+# Model should be written to /workspace/model
+
 pip install -U pip setuptools
 pip install -r /workspace/source/workshop/src/train/requirements.txt
 
