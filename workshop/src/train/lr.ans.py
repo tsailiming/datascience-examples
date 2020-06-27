@@ -21,6 +21,7 @@ import dvc.api
 import s3fs
 
 DATA_VERSION = 'v1.0'
+CSV_FILE = 'creditcard-train.csv'
 
 class Run:
     def __init__(self, run_name, model_path):
@@ -72,7 +73,7 @@ class Run:
     def _prepare_dataset(self):
 
         resource_url = dvc.api.get_url(
-            path='creditcard.csv',
+            path=CSV_FILE,
             repo=os.environ['DATA_REPO'],
             rev=DATA_VERSION)
 
