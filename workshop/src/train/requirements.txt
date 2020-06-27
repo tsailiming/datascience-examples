@@ -3,7 +3,8 @@ pandas==1.0.5
 scikit-learn==0.23.1
 boto3==1.14.7
 joblib==0.15.1
-mlflow[extras]==1.8.0
+mlflow==1.8.0
 imbalanced-learn==0.7.0
 dvc==0.94.0
 s3fs==0.4.2
+GitPython==3.1.3
