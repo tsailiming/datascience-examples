@@ -21,7 +21,11 @@ import dvc.api
 import s3fs
 
 DATA_VERSION = 'v1.0'
-CSV_FILE = 'creditcard-train.csv'
+
+if os.environ.get('PIPELINERUN', None):
+    CSV_FILE = 'creditcard-train.csv'       
+else:
+    CSV_FILE = 'creditcard.csv'
 
 class Run:
     def __init__(self, run_name, model_path):
@@ -72,6 +76,8 @@ class Run:
 
     def _prepare_dataset(self):
 
+        print('Using ' +  CSV_FILE)
+        
         resource_url = dvc.api.get_url(
             path=CSV_FILE,
             repo=os.environ['DATA_REPO'],
