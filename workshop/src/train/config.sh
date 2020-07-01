@@ -1,3 +1,3 @@
 # Change these for the model
-PYTHON_SCIPT: lr.py
+PYTHON_SCRIPT: lr.py
 RUN_NAME: lr
