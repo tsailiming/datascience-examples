@@ -26,6 +26,8 @@ class Runner(object):
         self.predict_url = '{}/api/v1.0/predictions'.format(host)
         self.feedback_url = '{}/api/v1.0/feedback'.format(host)
 
+        print('Prediction URL: {}'.format(self.predict_url))
+        
         self.verbose = verbose
         self.count = count
 
