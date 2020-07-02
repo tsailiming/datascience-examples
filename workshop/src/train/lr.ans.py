@@ -22,6 +22,7 @@ import s3fs
 
 DATA_VERSION = 'v1.0'
 
+# PIPELINERUN will be set when run from the pipeline
 if os.environ.get('PIPELINERUN', None):
     CSV_FILE = 'creditcard-train.csv'       
 else:
